@@ -23,7 +23,7 @@ fetch_pokemon() {
     else
       echo "[$name] Attempt $attempt failed..."
       ((attempt++))
-      sleep 1
+      sleep 1 # Kill for 1
     fi
   done
 
