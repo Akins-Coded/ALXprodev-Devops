@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# List of Pokémon to fetch
+POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+
+# Create output directory
+mkdir -p pokemon_data
+
+# Max retries for each Pokémon
+MAX_RETRIES=3
+
+# Function to fetch a single Pokémon
+fetch_pokemon() {
+  name=$1
+  attempt=1
+  success=false
+
+  while [ $attempt -le $MAX_RETRIES ]; do
+    if curl -s -f "https://pokeapi.co/api/v2/pokemon/$name" -o "pokemon_data/${name}.json"; then
+      echo "[$name] Fetched and saved ✅"
+      success=true
+      break
+    else
+      echo "[$name] Attempt $attempt failed..."
+      ((attempt++))
+      sleep 1
+    fi
+  done
+
+  if [ "$success" = false ]; then
+    echo "[$(date)] Failed to fetch data for $name after $MAX_RETRIES attempts" >> errors.txt
+    echo "[$name] Failed ❌"
+  fi
+}
+
+# Fetch all Pokémon in parallel
+for name in "${POKEMONS[@]}"; do
+  fetch_pokemon "$name" &
+done
+
+# Wait for all background jobs to finish
+wait
+
+echo ""
+echo "✅ All fetch operations completed."
+
