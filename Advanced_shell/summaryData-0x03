@@ -6,35 +6,36 @@ OUTPUT_FILE="pokemon_report.csv"
 # Header
 echo "Name,Height (m),Weight (kg)" > "$OUTPUT_FILE"
 
-# Extract data from each JSON file in pokemon_data/
+# Extract data using jq, clean with sed
 for file in pokemon_data/*.json; do
-  name=$(jq -r '.name | ascii_upcase[0] + .[1:]' "$file")
-  height=$(jq '.height' "$file")
-  weight=$(jq '.weight' "$file")
-
-  # Convert from decimeters and hectograms to meters and kilograms
-  height_m=$(awk "BEGIN { printf \"%.2f\", $height / 10 }")
-  weight_kg=$(awk "BEGIN { printf \"%.2f\", $weight / 10 }")
-
-  echo "$name,$height_m,$weight_kg" >> "$OUTPUT_FILE"
-done
-
-echo ""
-echo "CSV Report generated at: $OUTPUT_FILE"
-echo ""
-
-# Display the CSV content
-cat "$OUTPUT_FILE"
-
-# Calculate and display averages
-awk -F',' '
-  NR > 1 {
-    height_sum += $2
-    weight_sum += $3
-    count += 1
-  }
-  END {
-    printf "\nAverage Height: %.2f m\n", height_sum / count
-    printf "Average Weight: %.2f kg\n", weight_sum / count
-  }
-' "$OUTPUT_FILE"
+	  name=$(jq -r '.name' "$file" | sed 's/.*/\u&/')  # Capitalize first letter using sed
+	    height=$(jq '.height' "$file")
+	      weight=$(jq '.weight' "$file")
+	      
+	        # Convert units
+		  height_m=$(awk "BEGIN { printf \"%.2f\", $height / 10 }")
+		    weight_kg=$(awk "BEGIN { printf \"%.2f\", $weight / 10 }")
+		    
+		      echo "$name,$height_m,$weight_kg" >> "$OUTPUT_FILE"
+	      done
+	      
+	      echo ""
+	      echo "CSV Report generated at: $OUTPUT_FILE"
+	      echo ""
+	      
+	      # Show CSV content
+	      cat "$OUTPUT_FILE"
+	      
+	      # Calculate averages using awk
+	      awk -F',' '
+	        NR > 1 {
+		    height_sum += $2
+		        weight_sum += $3
+			    count += 1
+			      }
+		        END {
+			    printf "\nAverage Height: %.2f m\n", height_sum / count
+			        printf "Average Weight: %.2f kg\n", weight_sum / count
+				  }
+			  ' "$OUTPUT_FILE"
+			  "
